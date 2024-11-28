@@ -1,4 +1,3 @@
-import json
 import requests
 from jsonschema import validate
 from qa_guru_hw17.utils import get_json_schema
@@ -11,7 +10,6 @@ def test_get_users():
     page = 2
     params = {'page': page}
     response = requests.get(url, params=params)
-    print(response.json())
     assert response.status_code == 200
     validate(response.json(), get_json_schema.get_users_schema())
     assert response.json()['page'] == page
@@ -43,6 +41,8 @@ def test_post_user():
     response = requests.post(url, data=data)
     assert response.status_code == 201
     validate(response.json(), get_json_schema.get_user_create_schema())
+    for key in data:
+        assert response.json()[key] == data[key]
 
 
 def test_get_exist_user():
@@ -50,6 +50,7 @@ def test_get_exist_user():
     url = BASE_URL + f'/users/{user_id}'
     response = requests.get(url)
     assert response.status_code == 200
+    validate(response.json(), get_json_schema.get_user_existing_schema())
     assert response.json()['data']['id'] == 2
 
 
@@ -66,6 +67,7 @@ def test_login_success_authorization():
     data = {"email": "eve.holt@reqres.in", "password": "cityslicka"}
     response = requests.post(url, data=data)
     assert response.status_code == 200
+    validate(response.json(), get_json_schema.get_login_success_schema())
 
 
 def test_login_failure_authorization():
@@ -73,3 +75,4 @@ def test_login_failure_authorization():
     data = {"email": "ass@reqres.in", "password": "cityslicka"}
     response = requests.post(url, data=data)
     assert response.status_code == 400
+    validate(response.json(), get_json_schema.get_login_failure_schema())
